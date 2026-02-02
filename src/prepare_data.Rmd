@@ -1,0 +1,82 @@
+---
+title: "prepare_data"
+output: html_document
+date: "2026-02-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This script read data and create structural variables needed for time series modeling and to account for trend and seasonality. 
+```{r}
+library(readxl)
+```
+
+```{r}
+
+raw_data <- read_excel("../data/Toddler/descriptive_toddler_Table4b.xlsx")
+
+df <- raw_data[, !names(raw_data) %in% c("total_elig", "count")]
+str(df)
+
+```
+
+Adding month_index for modeling the trend.
+```{r}
+
+df$month_index <- seq_len(nrow(df))
+head(df)
+
+```
+
+Adding calendar month to model seasonality if needed
+```{r}
+df$calendar_month <- as.integer(format(df$month_turn_2, "%m"))
+df$calendar_month <- factor(
+  df$calendar_month,
+  levels = 1:12,
+  labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+  )
+
+str(df)
+```
+First interruption. 
+```{r}
+# Binary variable to flag the before and after first interruption
+df$after_covid_start <- ifelse(df$period == "pre", 0, 1)
+# sanity check
+table(df$period, df$after_covid_start)
+```
+```{r}
+# adding a counter column to months since the first interruption (the start of COVID)
+Covid_start_index <- min(df$month_index[df$after_covid_start==1])
+#Covid_start_index
+df$months_since_covid_start <- ifelse(
+  df$after_covid_start ==1,
+  df$month_index - Covid_start_index + 1,
+  0
+)
+
+```
+
+Second Interruption (end of COVID)
+```{r}
+df$after_covid_end <- ifelse(df$period == "post", 1, 0)
+table(df$period, df$after_covid_end)
+
+```
+```{r}
+covid_end_index <- min(df$month_index[df$after_covid_end == 1])
+#covid_end_index
+
+df$months_since_covid_end <- ifelse(
+  
+  df$after_covid_end == 1,
+  df$month_index - covid_end_index + 1,
+  0
+)
+
+```
+
