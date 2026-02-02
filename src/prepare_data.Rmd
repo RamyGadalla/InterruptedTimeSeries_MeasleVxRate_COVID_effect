@@ -8,7 +8,7 @@ date: "2026-02-02"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This script read data and create structural variables needed for time series modeling and to account for trend and seasonality. 
+This script reads data and creates structural variables needed for time series modeling and to account for trend and seasonality. 
 ```{r}
 library(readxl)
 ```
