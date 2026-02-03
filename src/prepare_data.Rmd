@@ -84,3 +84,10 @@ df$months_since_covid_end <- ifelse(
 head(df)
 ```
 
+
+```{r}
+df$month_turn_2 <- as.POSIXct(df$month_turn_2)
+```
+
+
+

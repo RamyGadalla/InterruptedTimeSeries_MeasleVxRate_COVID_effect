@@ -1,0 +1,101 @@
+---
+title: "EDA"
+output: pdf_document
+date: "2026-02-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+
+
+```{r}
+df <- read.csv("../df.csv")
+```
+
+
+
+```{r slope}
+
+impact_start = as.POSIXct("2020-03-01")
+impact_end   = as.POSIXct("2023-03-01")
+
+df$period = factor(df$period, levels=c("pre", "impacted", "post"))
+  
+p1 <- ggplot(df, aes(x=as.POSIXct(month_turn_2), y=rate, color=period)) +
+  geom_line(linewidth=1) +
+  geom_point(size=1.5) +
+  geom_smooth(aes(group=period), method="lm", se=FALSE, linewidth=0.6, color="black")+
+  scale_y_continuous(limits = c(60,75)) +
+  geom_vline(xintercept =  impact_start, linetype = "dashed", color="gray50")+
+  geom_vline(xintercept =  impact_end, linetype = "dashed", color="gray50" ) +
+  labs(
+    title = "Measles Vaccination Rate over Time - Slope",
+    x = "Month",
+    y = "Vaccination Rate",
+    color = "Period"
+  ) + 
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "right",
+    legend.title = element_text(size=11),
+    axis.title = element_text(size=12),
+    axis.text  = element_text(size=11)
+  )
+
+ggsave(p1, filename="../figures/1_whole_plot_with_slop.pdf", width=9, height=4.5, units="in")
+
+p1
+```
+
+```{r mean}
+
+period_means <- df %>% 
+  group_by(period) %>%
+  summarise(
+    mean_vax = mean(rate),
+    xmin = min(as.POSIXct(month_turn_2)),
+    xmax = max(as.POSIXct(month_turn_2)),
+    .groups = "drop"
+  )
+
+p2 <- ggplot(df, aes(x=as.POSIXct(month_turn_2), y=rate, color=period)) +
+  geom_line(linewidth=1) +
+  geom_point(size=1.5) +
+  geom_segment(data = period_means, 
+               aes(x=xmin, xend=xmax, y=mean_vax, yend=mean_vax), inherit.aes = FALSE,
+               color = "black",
+               linewidth=0.6) +
+  scale_y_continuous(limits = c(60,75)) +
+  geom_vline(xintercept =  impact_start, linetype = "dashed", color="gray50")+
+  geom_vline(xintercept =  impact_end, linetype = "dashed", color="gray50" ) +
+  labs(
+    title = "Measles Vaccination Rate over Time - Average",
+    x = "Month",
+    y = "Vaccination Rate",
+    color = "Period"
+  ) + 
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "right",
+    legend.title = element_text(size=11),
+    axis.title = element_text(size=12),
+    axis.text  = element_text(size=11)
+  )
+
+ggsave(p2, filename="../figures/2_whole_plot_with_mean.pdf", width=9, height=4.5, units="in")
+
+p2
+```
+
+
+
+
