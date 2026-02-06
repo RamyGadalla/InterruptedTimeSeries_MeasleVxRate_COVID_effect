@@ -35,6 +35,7 @@ head(df)
 Adding calendar month to model seasonality if needed
 ```{r}
 df$calendar_month <- as.integer(format(df$month_turn_2, "%m"))
+
 df$calendar_month <- factor(
   df$calendar_month,
   levels = 1:12,

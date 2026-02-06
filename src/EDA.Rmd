@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(ggplot2)
 library(dplyr)
+library(patchwork)
+library(forecast)
 ```
 
 
@@ -97,5 +99,67 @@ p2
 ```
 
 
+```{r seasonality}
+
+# df$calendar_month <- factor(
+#   df$calendar_month,
+#   levels = 1:12,
+#   labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+#              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+#   )
+
+
+monthly_avg <- df %>% group_by(calendar_month) %>%
+     summarise(
+       mean_vax = mean(rate),
+       .groups = "drop"
+     )
+
+
+
+p3 <- ggplot(monthly_avg, aes(calendar_month, mean_vax)) +
+  geom_line(group=1, linewidth = 1) +
+  geom_point(size=2, color="red")+
+  labs(title = "Average Measles Vaccination Rate by Calendar Month",
+        x    = "Calendar Month",
+        y    = "Average Vaccination Rate") +
+  scale_y_continuous(limits = c(67,72)) +
+  theme_classic() +
+  theme(plot.title = element_text(hjust=0.5, size=14, face="bold"),
+        axis.title= element_text(size=12),
+        axis.text = element_text(size=11)
+        )
+p3
+
+ggsave(p3, filename="../figures/3_seasonality.pdf", width=9, height=4.5, units="in")
+```
+
+```{r autocorrelation}
+
+
+p_acf <- ggAcf(df$rate) + labs(title="ACF") + theme_classic() + theme(plot.title = element_text(hjust=0.5))
+p_pacf <- ggPacf(df$rate) + labs(title="pACF") + theme_classic() + theme(plot.title = element_text(hjust=0.5))
+
+p4 <- (p_acf + p_pacf) + plot_annotation(title="Autocorrelation Diagnosis")
+p4
+
+ggsave(p4, filename="../figures/4_autocorrelation.pdf", width=9, height=4.5, units="in")
+
+```
+
+Variance stability
+```{r stability}
+ggplot(df, aes(x=period, y=rate)) +
+  geom_boxplot(width=0.6, outlier.size=1.5) +
+  theme_classic(base_size = 13) +
+  labs(title = "Variance stability") +
+  theme(plot.title = element_text(hjust=0.5, size=14, face="bold"),
+        axis.title= element_text(size=12),
+        axis.text = element_text(size=11)
+        )
+```
+
+  )
+```
 
 
